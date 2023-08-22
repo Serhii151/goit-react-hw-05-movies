@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import { Link } from "react-router-dom";
 
-const StyledLink = styled(Link)`
+export const StyledLink = styled(Link)`
   display: inline-block;
   background-color: transparent;
   color: black;
@@ -22,4 +22,3 @@ export const TextContainer = styled.div`
   margin-left: 20px;
 `;
 
-export default StyledLink;

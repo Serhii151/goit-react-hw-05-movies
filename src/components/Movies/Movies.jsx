@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { searchMovies } from '../api';
 import styled from 'styled-components';
 
@@ -47,29 +47,51 @@ const MoviesList = styled.ul`
   }
 `;
 
-function Movies() {
+const Movies = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
 
-  const handleSearch = async () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+
     if (searchQuery.trim() === '') {
       return;
     }
 
     const results = await searchMovies(searchQuery);
     setSearchResults(results);
+
+    const queryParams = new URLSearchParams(location.search);
+    queryParams.set('q', searchQuery);
+    navigate(`?${queryParams.toString()}`);
   };
 
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const query = queryParams.get('q');
+
+    if (query) {
+      setSearchQuery(query);
+      searchMovies(query).then((results) => setSearchResults(results));
+    }
+  }, [location.search]);
+
+  
   return (
     <Container>
       <Title>Search Movies</Title>
       <InputContainer>
-        <SearchInput
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <SearchButton onClick={handleSearch}>Search</SearchButton>
+        <form onSubmit={handleSearch}>
+          <SearchInput
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <SearchButton type="submit">Search</SearchButton>
+        </form>
       </InputContainer>
 
       <MoviesList>
@@ -81,6 +103,6 @@ function Movies() {
       </MoviesList>
     </Container>
   );
-}
+};
 
 export default Movies;

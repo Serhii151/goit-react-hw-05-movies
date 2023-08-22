@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation, useNavigate } from 'react-router-dom'; 
 import { getMovieDetails, getCastDetails, getMovieReviews } from '../api';
-import StyledLink from './MovieDetails.styled';
-import { DetailsContainer, TextContainer } from './MovieDetails.styled';
+import { DetailsContainer, TextContainer, StyledLink } from './MovieDetails.styled';
 import { Cast } from '../Cast/Cast';
 import { Reviews } from '../Reviews/Reviews';
 import styled from 'styled-components';
@@ -41,8 +40,11 @@ const AdditionalInfoItem = styled.li`
 
 function MovieDetails() {
   const { movieId } = useParams();
+  const location = useLocation(); 
+  const navigate = useNavigate(); 
+
   const [movie, setMovie] = useState(null);
-  const [castVisible, setCastVisible] = useState(false); 
+  const [castVisible, setCastVisible] = useState(false);
   const [reviewsVisible, setReviewsVisible] = useState(false);
 
   useEffect(() => {
@@ -54,7 +56,7 @@ function MovieDetails() {
       setMovie({
         ...movieData,
         cast: castData || [],
-        reviews: reviewsData || []
+        reviews: reviewsData || [],
       });
     }
 
@@ -65,9 +67,17 @@ function MovieDetails() {
     return <div>Loading...</div>;
   }
 
+  const handleGoBack = () => {
+    if (location.state?.searchQuery) {
+      navigate(`/movies?search=${encodeURIComponent(location.state.searchQuery)}`);
+    } else {
+      navigate(-1);
+    }
+  };
+
   return (
     <MovieWrapper>
-      <StyledLink to="/">Go back</StyledLink>
+      <StyledLink to="/" onClick={handleGoBack}>Go back</StyledLink>
       <DetailsContainer>
         <MoviePoster src={`http://image.tmdb.org/t/p/w185/${movie.poster_path}`} alt="" />
         <TextContainer>
