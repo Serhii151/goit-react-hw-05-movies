@@ -66,7 +66,7 @@ const Movies = () => {
 
     const queryParams = new URLSearchParams(location.search);
     queryParams.set('q', searchQuery);
-    navigate(`?${queryParams.toString()}`);
+    navigate(`/movies?${queryParams.toString()}`);
   };
 
   useEffect(() => {
@@ -97,7 +97,12 @@ const Movies = () => {
       <MoviesList>
         {searchResults.map((movie) => (
           <li key={movie.id}>
-            <Link to={`/movies/${movie.id}`}>{movie.title}</Link>
+            <Link
+              to={`/movies/${movie.id}`}
+              state={{ from: location.pathname + location.search }}
+            >
+              {movie.title}
+            </Link>
           </li>
         ))}
       </MoviesList>

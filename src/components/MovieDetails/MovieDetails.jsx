@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, Link, useLocation, useNavigate } from 'react-router-dom'; 
+import React, { useEffect, useState, useRef } from 'react';
+import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { getMovieDetails, getCastDetails, getMovieReviews } from '../api';
 import { DetailsContainer, TextContainer, StyledLink } from './MovieDetails.styled';
 import { Cast } from '../Cast/Cast';
 import { Reviews } from '../Reviews/Reviews';
 import styled from 'styled-components';
-
 
 const MovieWrapper = styled.div`
   padding: 20px;
@@ -40,14 +39,22 @@ const AdditionalInfoItem = styled.li`
 
 function MovieDetails() {
   const { movieId } = useParams();
-  const location = useLocation(); 
-  const navigate = useNavigate(); 
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const [movie, setMovie] = useState(null);
   const [castVisible, setCastVisible] = useState(false);
   const [reviewsVisible, setReviewsVisible] = useState(false);
+  const fromRef = useRef('/'); 
+
 
   useEffect(() => {
+
+    
+    if (location.state && location.state.from) {
+      fromRef.current = location.state.from;
+    }
+
     async function fetchMovieDetails() {
       const movieData = await getMovieDetails(movieId);
       const castData = await getCastDetails(movieId);
@@ -61,27 +68,29 @@ function MovieDetails() {
     }
 
     fetchMovieDetails();
-  }, [movieId]);
+  }, [movieId, location.state]);
+
+  const handleGoBack = (e) => {
+    e.preventDefault();
+    navigate(fromRef.current);
+  };
+  
 
   if (!movie) {
     return <div>Loading...</div>;
   }
 
-  const handleGoBack = () => {
-    if (location.state?.searchQuery) {
-      navigate(`/movies?search=${encodeURIComponent(location.state.searchQuery)}`);
-    } else {
-      navigate(-1);
-    }
-  };
-
   return (
     <MovieWrapper>
-      <StyledLink to="/" onClick={handleGoBack}>Go back</StyledLink>
+      <StyledLink onClick={handleGoBack}>
+        Go back
+      </StyledLink>
       <DetailsContainer>
         <MoviePoster src={`http://image.tmdb.org/t/p/w185/${movie.poster_path}`} alt="" />
         <TextContainer>
-          <h2>{movie.title} ({new Date(movie.release_date).getFullYear()})</h2>
+          <h2>
+            {movie.title} ({new Date(movie.release_date).getFullYear()})
+          </h2>
           <p>Use Score: {Math.round(movie.vote_average * 10)} %</p>
           <h3>Overview</h3>
           <p>{movie.overview}</p>
@@ -97,24 +106,21 @@ function MovieDetails() {
             </Link>
           </AdditionalInfoItem>
           <AdditionalInfoItem>
-            <Link to={`/movies/${movieId}/reviews`} onClick={() => setReviewsVisible(!reviewsVisible)}>
+            <Link
+              to={`/movies/${movieId}/reviews`}
+              onClick={() => setReviewsVisible(!reviewsVisible)}
+            >
               Reviews
             </Link>
           </AdditionalInfoItem>
         </AdditionalInfoList>
       </AdditionalInfoContainer>
-      {castVisible && movie.cast && (
-        <div>
-          <Cast cast={movie.cast} />
-        </div>
-      )}
-      {reviewsVisible && movie.reviews && (
-        <div>
-          <Reviews reviews={movie.reviews} />
-        </div>
-      )}
+      {castVisible && movie.cast && <Cast cast={movie.cast} />}
+      {reviewsVisible && movie.reviews && <Reviews reviews={movie.reviews} />}
     </MovieWrapper>
   );
 }
 
 export default MovieDetails;
+
+
